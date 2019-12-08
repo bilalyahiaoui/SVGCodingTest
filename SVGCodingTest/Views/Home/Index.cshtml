@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    @model List<Vehicle>
+}
+<div class="text-center">
+    <div id="chart"></div>
+    <div id="pieChart"></div>
+    <button id="exportChart" onclick="downloadVehiclesSold()">Export Vehicles Sold</button>
+    <button id="exportChart" onclick="downloadMarketShare()">Export Market Share to SVG</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/frappe-charts@1.2.4/dist/frappe-charts.min.iife.js"></script>
+<script type="text/javascript">
+
+    var my2018Data = [];
+    var my2019Data = [];
+    var vehicleTypes = [];
+    var marketShare = [];
+
+        @foreach(var item in @Model[0].MarketShare2019(Model))
+        {
+            @:marketShare.push(@item);
+        }
+
+    @foreach(var item in Model)
+    {
+        @:vehicleTypes.push("@item.VehicleType");
+        @:my2018Data.push(@item.Sales2018);
+        @:my2019Data.push(@item.Sales2019);
+    }
+
+
+    @*using frappe (nuget package) to display the two different charts*@
+    const chart = new frappe.Chart("#chart", {
+        data: {
+            labels: vehicleTypes,
+
+            datasets: [
+                {
+                    name: "2018", chartType: 'bar',
+                    values: my2018Data
+                },
+                {
+                    name: "2019", chartType: 'bar',
+                    values: my2019Data
+                }
+            ],
+        },
+
+        title: "Vehicles Sold",
+        type: 'bar',
+        height: 300,
+        colors: ['blue', 'light-blue'],
+
+    });
+
+
+    
+    const marketShare2019 = new frappe.Chart("#pieChart", {
+        data: {
+            labels: vehicleTypes,
+            datasets: [
+                {
+                    name: "2019 Market Share",
+                    values: marketShare
+                }
+            ],
+        },
+
+        title: "2019 Market Share",
+        type: 'pie',
+        height: 300,
+        colors: ['blue', 'light-blue', 'red', 'purple', 'orange'],
+
+    });
+    
+    // export the vehicles sold chart
+    function downloadVehiclesSold() {
+        chart.export();
+    }
+
+    // export the pie chart
+    function downloadMarketShare() {
+        marketShare2019.export();
+    }
+</script>
